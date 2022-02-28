@@ -1,5 +1,5 @@
 bl_info = {
-    "name": "Flag Creator",
+    "name": "Flag Generator",
     "blender" : (3,0,0),
     "category": "Object",
     "location" : "View 3D",
@@ -13,7 +13,7 @@ import os
 from pydoc import visiblename
 import bpy
 
-# OPERATORS
+# OPERATOR
 class GENERATE_OT_generate_flags(bpy.types.Operator):
     bl_idname = "generate.generate_flags"
     bl_label = "Generate Flags"
@@ -54,3 +54,52 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
 
             # Exports GLB
             ExportGLB(output_path)
+
+
+# PANEL
+class VIEW3D_PT_generate_flags(bpy.types.Panel):
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Flag Generator"
+    bl_label = "Generate"
+
+    def draw(self, context):
+        layout = self.layout
+
+        # Path to texture folder
+        row = layout.row()
+        col = row.column()
+        col.prop(context.scene, "texture_path")
+
+
+
+
+# REGISTER AND UNREGISTER CLASSES
+classes = [
+    GENERATE_OT_generate_flags,
+    VIEW3D_PT_generate_flags
+]
+
+def register():
+    bpy.types.Scene.texture_path = bpy.props.StringProperty(
+        name = 'Textures Folder',
+        subtype = 'DIR_PATH',
+    )
+
+    bpy.types.Scene.output_path = bpy.props.StringProperty(
+    name='Output Folder',
+    subtype='DIR_PATH',
+    )
+
+    for c in classes:
+        bpy.utils.register_class(c)
+
+
+
+def unregister():
+    del bpy.types.Scene.texture_path
+    del bpy.types.Scene.output_path
+
+    for c in classes:
+        bpy.utils.unregister_class(c)
+
