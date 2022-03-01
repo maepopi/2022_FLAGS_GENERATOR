@@ -132,9 +132,9 @@ def PrepareCompositor(scene, path, name):
     bpy.context.area.ui_type = 'CompositorNodeTree'
     scene_tree = scene.node_tree
     links = scene_tree.links
-    output_path = os.path.join(path, name)
     output_node = scene_tree.nodes["File Output"]
-    output_node.base_path = output_path
+    output_node.base_path = path
+    print("The output render path is " + str(path) )
 
 
 def RenderFlag():
@@ -143,10 +143,16 @@ def RenderFlag():
 
 
 def RenameThumbnail(path, name):
-    original_folder = os.path.join(path, name)
+    original_folder = path
 
     for item in os.listdir(original_folder):
-        if 'png' in item:
+        print("rename thumbnail name " + item)
+        print("rename thumbnail original folder " + str(original_folder))
+        original_filepath = os.path.join(original_folder, item)
+
+        print("rename thumbnail original filepath is " + str(original_filepath))
+
+        if 'Image0000.png' in item:
             original_filepath = os.path.join(original_folder, item)
             original_name = os.path.splitext(item)[0]
             extension = os.path.splitext(item)[1]
@@ -163,7 +169,7 @@ def ExportGLB(list, path, name):
     
     
     extension = ".glb"
-    output_path = os.path.join(path, name, name + extension)
+    output_path = os.path.join(path, name + extension)
 
 
 
