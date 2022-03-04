@@ -1,3 +1,6 @@
+@echo off
+
+
 REM The purpose of this script is to normalize a series of flag images to be used by the flag generator Python addon. 
 
 
@@ -12,28 +15,25 @@ REM Creating a loop for each file in the texture folder
 
 REM Technically this means : for every file (the * is essential) in the inputPath, do...
 
-for %%f in (%inputPath%\*) do (
-    REM echo file found
-    REM echo fullname : %%f
+for %%f in (%inputPath%\*) do call :process %%f
 
-    REM The name of the image below (for some reason can't store it in a variable)
-    echo %%~nf
+PAUSE 
 
-
+:process
+    REM Storing needed variables
+    ECHO File found
+    set file_path=%~1
+    set file_fullname=%~nx1
+    set file_name=%~n1
+  
     REM Process the image
-    "%ffmpegpath%" -i %%f -vf scale=%resolution%:%resolution% %inputPath%\%%~nf_reduced_converted.jpg
+    "%ffmpegpath%" -i %file_path% -vf scale=%resolution%:%resolution% %inputPath%\%file_name%_reduced_converted.jpg
 
     REM Delete the original image
-    del %%f
+    del %file_path%
 
     REM Rename the new image
-    ren "%inputPath%\%%~nf_reduced_converted".jpg "%%~nf".jpg
+    ren "%inputPath%\%file_name%_reduced_converted".jpg "%file_name%".jpg
 
-    
-
-)
-
-
-REM Use this if debug needed
-@REM pause
+EXIT /B Q
 
