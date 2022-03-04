@@ -104,8 +104,8 @@ class VIEW3D_PT_generate_flags(bpy.types.Panel):
 # FUNCTIONS
 def SetupRenderSettings(scene):
     #   Create and place the camera
-    bpy.ops.object.camera_add(align='VIEW')
-    bpy.ops.view3d.camera_to_view()
+    # bpy.ops.object.camera_add(align='VIEW')
+    # bpy.ops.view3d.camera_to_view()
 
     scene.view_settings.view_transform = "Standard"
     scene.render.resolution_x = 512
@@ -152,7 +152,7 @@ def RenameThumbnail(path, name):
 
         print("rename thumbnail original filepath is " + str(original_filepath))
 
-        if 'Image0000.png' in item:
+        if 'Image' in item:
             original_filepath = os.path.join(original_folder, item)
             original_name = os.path.splitext(item)[0]
             extension = os.path.splitext(item)[1]
