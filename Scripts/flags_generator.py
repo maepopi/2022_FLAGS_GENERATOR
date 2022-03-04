@@ -8,8 +8,7 @@ bl_info = {
     "version":(1,0)
 }
 
-from email.mime import base
-from json.tool import main
+
 import pathlib
 import os
 from pydoc import visiblename
@@ -46,6 +45,8 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
 
         textures_list = os.listdir(textures_folder_path)
         
+        #Prepare compositor
+        PrepareCompositor(main_scene, output_path)
 
         # For each item in textures_folder:
         for item in textures_list:
@@ -55,12 +56,8 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
             texture_name = os.path.splitext(item)[0]
             print("Texture name is " + texture_name)
 
-
             # Load and apply texture
             PlugTexture(main_scene, texture_path)
-
-            #Prepare compositor
-            PrepareCompositor(main_scene, output_path, texture_name)
 
             # # Renders according to viewport camera position
             RenderFlag()
@@ -128,7 +125,7 @@ def PlugTexture(scene, path):
     image_node.image = image
 
 
-def PrepareCompositor(scene, path, name):
+def PrepareCompositor(scene, path):
     bpy.context.area.ui_type = 'CompositorNodeTree'
     scene_tree = scene.node_tree
     links = scene_tree.links
