@@ -156,7 +156,7 @@ def RenameThumbnail(path, name):
             original_filepath = os.path.join(original_folder, item)
             original_name = os.path.splitext(item)[0]
             extension = os.path.splitext(item)[1]
-            new_filepath = os.path.join(original_folder, name + "_thumbnail" + extension)
+            new_filepath = os.path.join(original_folder, name + extension)
             os.rename(original_filepath, new_filepath)
         
         else:
