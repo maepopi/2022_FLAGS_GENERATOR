@@ -53,21 +53,25 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
         for folder in subfolders:
             #Get the subfolder name
             subfolder_name = folder
+            #Get the subfolder path
+            subfolder_path = os.path.join(input_path, folder)
 
             #Scale the flag according to new ratio
             ScaleFlag(subfolder_name, basic_ratio, flag_model)
 
             #Get the textures list
-            textures_list = GetTextures(input_path, folder)
+            textures_list = GetTextures(subfolder_path)
             print("Hey ! At this step, textures-list length is " + str(len(textures_list)))
 
 
             # # For each item in textures_list:
             for item in textures_list:
                 print ("Texture is " + str(item))
-                texture_path = os.path.join(input_path, item)
+                texture_path = os.path.join(subfolder_path, item)
                 print ("Texture path is " + str(texture_path))
-                texture_name = os.path.splitext(item)[0]
+                texture_fullname = os.path.basename(texture_path)
+                texture_name = os.path.splitext(texture_fullname)[0]
+                print("Texture fullname is " + texture_fullname)
                 print("Texture name is " + texture_name)
 
                 # Load and apply texture
@@ -79,8 +83,8 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
                 # Renames the thumbnail
                 RenameThumbnail(output_path, texture_name)
 
-            #     # Exports GLB
-            #     ExportGLB(models, output_path, texture_name)
+                # Exports GLB
+                ExportGLB(models, output_path, texture_name)
 
         
         return{'FINISHED'}
@@ -128,8 +132,7 @@ def ScaleFlag(name, basic_ratio, model):
     model.scale.x = new_ratio / basic_ratio
 
 
-def GetTextures(input_path, folder):
-    subfolder_path = os.path.join(input_path, folder)
+def GetTextures(subfolder_path):
     texture_list = []
     texture_list.extend(glob.glob(os.path.join(subfolder_path, '*.jpg')))
     texture_list.extend(glob.glob(os.path.join(subfolder_path, '*.jpeg')))
@@ -168,8 +171,9 @@ def RenderFlag():
     
 
 
-def RenameThumbnail(path, name):
-    original_folder = path
+def RenameThumbnail(output_path, name):
+    original_folder = output_path
+    print ("original folder at this step is " + str(original_folder))
 
     for item in os.listdir(original_folder):
         print("rename thumbnail name " + item)
@@ -179,10 +183,11 @@ def RenameThumbnail(path, name):
         print("rename thumbnail original filepath is " + str(original_filepath))
 
         if 'Image' in item:
-            original_filepath = os.path.join(original_folder, item)
+            # original_filepath = os.path.join(original_folder, item)
             original_name = os.path.splitext(item)[0]
             extension = os.path.splitext(item)[1]
             new_filepath = os.path.join(original_folder, name + extension)
+            print("new file path is" + str(new_filepath))
             os.rename(original_filepath, new_filepath)
         
         else:
