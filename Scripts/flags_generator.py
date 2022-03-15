@@ -63,21 +63,21 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
 
 
             # # For each item in textures_list:
-            # for item in textures_list:
-            #     print ("Texture is " + str(item))
-            #     texture_path = os.path.join(input_path, item)
-            #     print ("Texture path is " + str(texture_path))
-            #     texture_name = os.path.splitext(item)[0]
-            #     print("Texture name is " + texture_name)
+            for item in textures_list:
+                print ("Texture is " + str(item))
+                texture_path = os.path.join(input_path, item)
+                print ("Texture path is " + str(texture_path))
+                texture_name = os.path.splitext(item)[0]
+                print("Texture name is " + texture_name)
 
-            #     # Load and apply texture
-            #     PlugTexture(main_scene, texture_path)
+                # Load and apply texture
+                PlugTexture(main_scene, texture_path)
 
-            #     # # Renders according to viewport camera position
-            #     RenderFlag()
+                # # Renders according to viewport camera position
+                RenderFlag()
 
-            #     # Renames the thumbnail
-            #     RenameThumbnail(output_path, texture_name)
+                # Renames the thumbnail
+                RenameThumbnail(output_path, texture_name)
 
             #     # Exports GLB
             #     ExportGLB(models, output_path, texture_name)
