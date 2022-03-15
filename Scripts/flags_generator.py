@@ -13,6 +13,7 @@ import pathlib
 import os
 from pydoc import visiblename
 import bpy
+import glob
 
 # OPERATOR
 class GENERATE_OT_generate_flags(bpy.types.Operator):
@@ -26,6 +27,7 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
         flag_model = bpy.data.objects["Base_Flag"]
         base_model = bpy.data.objects["Base_Pole"]
         models = [flag_model, base_model]
+        basic_ratio = 1.5
         
 
         # Clean any potential orphan images
@@ -36,37 +38,49 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
         
         SetupRenderSettings(main_scene)
 
-
         # Declare Resources path
-        textures_folder_path = context.scene.textures_path
+        input_path = context.scene.input_path
         output_path = context.scene.output_path
-        texture_path = None
-        name = None
+        subfolders = os.listdir(input_path)
+        # texture_path = None
+        # name = None
 
-        textures_list = os.listdir(textures_folder_path)
+        
         
         #Prepare compositor
         PrepareCompositor(main_scene, output_path)
 
-        # For each item in textures_folder:
-        for item in textures_list:
-            print ("Texture is " + str(item))
-            texture_path = os.path.join(textures_folder_path, item)
-            print ("Texture path is " + str(texture_path))
-            texture_name = os.path.splitext(item)[0]
-            print("Texture name is " + texture_name)
+        for folder in subfolders:
+            #Get the subfolder name
+            subfolder_name = folder
 
-            # Load and apply texture
-            PlugTexture(main_scene, texture_path)
+            #Scale the flag according to new ratio
+            ScaleFlag(subfolder_name, basic_ratio, flag_model)
 
-            # # Renders according to viewport camera position
-            RenderFlag()
+            #Get the textures list
+            textures_list = GetTextures(input_path, folder)
+            print("Hey ! At this step, textures-list length is " + str(len(textures_list)))
 
-            # Renames the thumbnail
-            RenameThumbnail(output_path, texture_name)
 
-            # Exports GLB
-            ExportGLB(models, output_path, texture_name)
+            # # For each item in textures_list:
+            # for item in textures_list:
+            #     print ("Texture is " + str(item))
+            #     texture_path = os.path.join(input_path, item)
+            #     print ("Texture path is " + str(texture_path))
+            #     texture_name = os.path.splitext(item)[0]
+            #     print("Texture name is " + texture_name)
+
+            #     # Load and apply texture
+            #     PlugTexture(main_scene, texture_path)
+
+            #     # # Renders according to viewport camera position
+            #     RenderFlag()
+
+            #     # Renames the thumbnail
+            #     RenameThumbnail(output_path, texture_name)
+
+            #     # Exports GLB
+            #     ExportGLB(models, output_path, texture_name)
 
         
         return{'FINISHED'}
@@ -85,7 +99,7 @@ class VIEW3D_PT_generate_flags(bpy.types.Panel):
         # Path to texture folder
         row = layout.row()
         col = row.column()
-        col.prop(context.scene, "textures_path")
+        col.prop(context.scene, "input_path")
 
         # Output path
         col = layout.column()
@@ -108,6 +122,21 @@ def SetupRenderSettings(scene):
     scene.render.resolution_x = 512
     scene.render.resolution_y = 512
     scene.render.film_transparent = True
+
+def ScaleFlag(name, basic_ratio, model):
+    new_ratio = float(name)
+    model.scale.x = new_ratio / basic_ratio
+
+
+def GetTextures(input_path, folder):
+    subfolder_path = os.path.join(input_path, folder)
+    texture_list = []
+    texture_list.extend(glob.glob(os.path.join(subfolder_path, '*.jpg')))
+    texture_list.extend(glob.glob(os.path.join(subfolder_path, '*.jpeg')))
+    # PNG is for test purposes only. The nomenclature will be JPG JPEG only
+    texture_list.extend(glob.glob(os.path.join(subfolder_path, '*.png')))
+
+    return texture_list
 
 
 def PlugTexture(scene, path):
@@ -192,8 +221,8 @@ classes = [
 ]
 
 def register():
-    bpy.types.Scene.textures_path = bpy.props.StringProperty(
-        name = 'Textures Folder',
+    bpy.types.Scene.input_path = bpy.props.StringProperty(
+        name = 'Input Folder',
         subtype = 'DIR_PATH',
     )
 
@@ -208,7 +237,7 @@ def register():
 
 
 def unregister():
-    del bpy.types.Scene.textures_path
+    del bpy.types.Scene.input_path
     del bpy.types.Scene.output_path
 
     for c in classes:
