@@ -41,6 +41,10 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
         # Declare Resources path
         input_path = context.scene.input_path
         output_path = context.scene.output_path
+
+        #Todo : backup folder duplicate context.scene.input_path => nomdossier_backup => prévoir overwrite if existing dir/path. Comme ça c'est déjà sauvegardé. 
+
+
         subfolders = os.listdir(input_path)
         # texture_path = None
         # name = None
@@ -73,6 +77,8 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
                 texture_name = os.path.splitext(texture_fullname)[0]
                 print("Texture fullname is " + texture_fullname)
                 print("Texture name is " + texture_name)
+
+                # Todo : Faire ffmpeg ici
 
                 # Load and apply texture
                 PlugTexture(main_scene, texture_path)
