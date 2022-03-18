@@ -45,10 +45,11 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
         # Declare Resources path
         input_path = context.scene.input_path
         output_path = context.scene.output_path
-        this_script_folder = os.path.dirname(os.path.realpath(__file__))
+        generator_folder = os.path.dirname(input_path)
+        print("The generator is located in " + str(generator_folder))
 
         #Todo : backup folder duplicate context.scene.input_path => nomdossier_backup => prévoir overwrite if existing dir/path. Comme ça c'est déjà sauvegardé. 
-        Backup(this_script_folder, input_path)
+        Backup(generator_folder, input_path)
 
         subfolders = os.listdir(input_path)
         # texture_path = None
@@ -76,7 +77,7 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
             # # For each item in textures_list:
             for item in textures_list:
                 print ("Texture is " + str(item))
-                texture_path = os.path.join(subfolder_path, item)
+                texture_path = item
                 print ("Texture path is " + str(texture_path))
                 texture_fullname = os.path.basename(texture_path)
                 texture_name = os.path.splitext(texture_fullname)[0]
@@ -84,7 +85,7 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
                 print("Texture name is " + texture_name)
 
                 # Normalize the image
-                Normalize(texture_path, texture_fullname, texture_name)
+                texture_path = Normalize(generator_folder, subfolder_path, texture_path, texture_name)
 
                 # Load and apply texture
                 PlugTexture(main_scene, texture_path)
@@ -139,9 +140,9 @@ def SetupRenderSettings(scene):
     scene.render.resolution_y = 512
     scene.render.film_transparent = True
 
-def Backup(script_folder, images_path):
+def Backup(generator_folder, images_path):
     #Create the backup folder
-    dst_path = os.path.join(script_folder, 'Backup')
+    dst_path = os.path.join(generator_folder, 'Backup')
     if os.path.exists(dst_path):
         shutil.rmtree(dst_path)
     
@@ -164,9 +165,9 @@ def GetTextures(subfolder_path):
     return texture_list
 
 
-def Normalize(script_folder, texture_path, texture_fullname, texture_name):
-    ffmpeg_path = os.path.join(script_folder, 'ffmpeg', 'bin', 'ffmpeg.exe')
-    outpath = os.path.join(texture_path, texture_name + 'reduced_converted' + '.jpg')
+def Normalize(generator_folder, texture_folder, texture_path, texture_name):
+    ffmpeg_path = os.path.join(generator_folder, 'ffmpeg', 'bin', 'ffmpeg.exe')
+    outpath = os.path.join(texture_folder, texture_name + '_reduced_converted' + '.jpg')
     resolution = 512
 
     #Here we define the four arguments we want to give the ffmpeg command. They will be written in a text file which will be saved as a "bat" file and launched by Python. We are asking Python to write the bat file for us.
@@ -179,7 +180,7 @@ def Normalize(script_folder, texture_path, texture_fullname, texture_name):
     ]
 
     #Now we actually write the bat file. For each image, it's going to write a bat file with the command line defined in ffmpeg_command
-    bat_file = open(script_folder + '\\normalizer' + texture_name + '.bat', 'w')
+    bat_file = open(generator_folder + '\\normalizer' + texture_name + '.bat', 'w')
     for line in ffmpeg_command:
         bat_file.write(line)
         #Here we define that the separation between the four strings should be a space, because that's what the command prompt needs to call the ffmpeg command.
@@ -187,15 +188,17 @@ def Normalize(script_folder, texture_path, texture_fullname, texture_name):
     bat_file.close()
 
     #Launch bat. The process_wait() makes sure that all the images are done.
-    process = subprocess.Popen(script_folder + '\\normalizer' + texture_name +'.bat')
+    process = subprocess.Popen(generator_folder + '\\normalizer' + texture_name +'.bat')
     process.wait()
 
     #Clean : delete the original file, rename the new one, and delete the bat file
     original_filepath = outpath
-    new_filepath = os.path.join(texture_path, texture_name + '.jpg')
+    new_filepath = os.path.join(texture_folder, texture_name + '.jpg')
     os.remove(texture_path)
     os.rename(original_filepath, new_filepath)
-    os.remove(script_folder + '\\normalizer' + texture_name +'.bat')
+    os.remove(generator_folder + '\\normalizer' + texture_name +'.bat')
+
+    return new_filepath
 
 
 
