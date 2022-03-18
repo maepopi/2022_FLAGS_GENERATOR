@@ -193,9 +193,10 @@ def Normalize(generator_folder, texture_folder, texture_path, texture_name):
     process.wait()
 
     #Clean : delete the original file, rename the new one, and delete the bat file
+    print("I want to remove " + str(texture_path))
     original_filepath = outpath
     new_filepath = os.path.join(texture_folder, texture_name + '.jpg')
-    # os.remove(texture_path)
+    os.remove(texture_path)
     os.rename(original_filepath, new_filepath)
     os.remove(generator_folder + '\\normalizer' + texture_name +'.bat')
 
