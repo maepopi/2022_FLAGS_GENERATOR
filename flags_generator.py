@@ -47,14 +47,11 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
         generator_folder = os.path.abspath(os.path.join(input_path, os.pardir))
         print("The generator is located in " + str(generator_folder))
 
-        #Todo : backup folder duplicate context.scene.input_path => nomdossier_backup => prévoir overwrite if existing dir/path. Comme ça c'est déjà sauvegardé. 
+       #Backup folder
         Backup(generator_folder, input_path)
 
         subfolders = os.listdir(input_path)
-        # texture_path = None
-        # name = None
-
-        
+     
         
         #Prepare compositor
         PrepareCompositor(main_scene, output_path)
@@ -83,8 +80,9 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
                 print("Texture fullname is " + texture_fullname)
                 print("Texture name is " + texture_name)
 
-                # Normalize the image
-                texture_path = Normalize(generator_folder, subfolder_path, texture_path, texture_name)
+                # Normalize the image but not if it's in the logo folder
+                if "Logo" not in subfolder_name:
+                    texture_path = Normalize(generator_folder, subfolder_path, texture_path, texture_name)
 
                 # Load and apply texture
                 PlugTexture(main_scene, texture_path)
@@ -151,8 +149,12 @@ def Backup(generator_folder, images_path):
 
 
 def ScaleFlag(name, basic_ratio, model):
-    new_ratio = float(name)
-    model.scale.x = new_ratio / basic_ratio
+    if "Logo" not in name:
+        new_ratio = float(name)
+        model.scale.x = new_ratio / basic_ratio
+    
+    else:
+        model.scale.x = 1
 
 def GetTextures(subfolder_path):
     texture_list = []
