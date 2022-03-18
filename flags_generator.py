@@ -10,7 +10,6 @@ bl_info = {
 
 
 from email.mime import image
-import pathlib
 import os
 from pydoc import visiblename
 import shutil
@@ -45,7 +44,7 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
         # Declare Resources path
         input_path = context.scene.input_path
         output_path = context.scene.output_path
-        generator_folder = os.path.dirname(input_path)
+        generator_folder = os.path.abspath(os.path.join(input_path, os.pardir))
         print("The generator is located in " + str(generator_folder))
 
         #Todo : backup folder duplicate context.scene.input_path => nomdossier_backup => prévoir overwrite if existing dir/path. Comme ça c'est déjà sauvegardé. 
@@ -194,7 +193,7 @@ def Normalize(generator_folder, texture_folder, texture_path, texture_name):
     #Clean : delete the original file, rename the new one, and delete the bat file
     original_filepath = outpath
     new_filepath = os.path.join(texture_folder, texture_name + '.jpg')
-    os.remove(texture_path)
+    # os.remove(texture_path)
     os.rename(original_filepath, new_filepath)
     os.remove(generator_folder + '\\normalizer' + texture_name +'.bat')
 
