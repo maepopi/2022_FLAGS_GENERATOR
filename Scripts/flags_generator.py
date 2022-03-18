@@ -9,11 +9,15 @@ bl_info = {
 }
 
 
+from email.mime import image
 import pathlib
 import os
 from pydoc import visiblename
+import shutil
 import bpy
 import glob
+import subprocess
+
 
 # OPERATOR
 class GENERATE_OT_generate_flags(bpy.types.Operator):
@@ -41,9 +45,10 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
         # Declare Resources path
         input_path = context.scene.input_path
         output_path = context.scene.output_path
+        this_script_folder = os.path.dirname(os.path.realpath(__file__))
 
         #Todo : backup folder duplicate context.scene.input_path => nomdossier_backup => prévoir overwrite if existing dir/path. Comme ça c'est déjà sauvegardé. 
-
+        Backup(this_script_folder, input_path)
 
         subfolders = os.listdir(input_path)
         # texture_path = None
@@ -78,7 +83,8 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
                 print("Texture fullname is " + texture_fullname)
                 print("Texture name is " + texture_name)
 
-                # Todo : Faire ffmpeg ici
+                # Normalize the image
+                Normalize(texture_path, texture_fullname, texture_name)
 
                 # Load and apply texture
                 PlugTexture(main_scene, texture_path)
@@ -133,19 +139,64 @@ def SetupRenderSettings(scene):
     scene.render.resolution_y = 512
     scene.render.film_transparent = True
 
+def Backup(script_folder, images_path):
+    #Create the backup folder
+    dst_path = os.path.join(script_folder, 'Backup')
+    if os.path.exists(dst_path):
+        shutil.rmtree(dst_path)
+    
+    #Copy paste the input folder there
+    shutil.copytree(images_path, dst_path)
+
+
+
 def ScaleFlag(name, basic_ratio, model):
     new_ratio = float(name)
     model.scale.x = new_ratio / basic_ratio
 
-
 def GetTextures(subfolder_path):
     texture_list = []
-    texture_list.extend(glob.glob(os.path.join(subfolder_path, '*.jpg')))
-    texture_list.extend(glob.glob(os.path.join(subfolder_path, '*.jpeg')))
-    # PNG is for test purposes only. The nomenclature will be JPG JPEG only
-    texture_list.extend(glob.glob(os.path.join(subfolder_path, '*.png')))
+    image_extensions = ['*.png', '*.jpg', '*.jpeg', '*.gif']
+
+    for extension in image_extensions:
+        texture_list.extend(glob.glob(os.path.join(subfolder_path, extension)))
 
     return texture_list
+
+
+def Normalize(script_folder, texture_path, texture_fullname, texture_name):
+    ffmpeg_path = os.path.join(script_folder, 'ffmpeg', 'bin', 'ffmpeg.exe')
+    outpath = os.path.join(texture_path, texture_name + 'reduced_converted' + '.jpg')
+    resolution = 512
+
+    #Here we define the four arguments we want to give the ffmpeg command. They will be written in a text file which will be saved as a "bat" file and launched by Python. We are asking Python to write the bat file for us.
+    ffmpeg_command=[
+        # The command we need is ffmpeg -i input_image -vf scale=512:512 output_image
+        ffmpeg_path,
+        "-i " + texture_path,
+        "-vf scale=" + str(resolution) + ":" + str(resolution),
+        outpath
+    ]
+
+    #Now we actually write the bat file. For each image, it's going to write a bat file with the command line defined in ffmpeg_command
+    bat_file = open(script_folder + '\\normalizer' + texture_name + '.bat', 'w')
+    for line in ffmpeg_command:
+        bat_file.write(line)
+        #Here we define that the separation between the four strings should be a space, because that's what the command prompt needs to call the ffmpeg command.
+        bat_file.write(' ')
+    bat_file.close()
+
+    #Launch bat. The process_wait() makes sure that all the images are done.
+    process = subprocess.Popen(script_folder + '\\normalizer' + texture_name +'.bat')
+    process.wait()
+
+    #Clean : delete the original file, rename the new one, and delete the bat file
+    original_filepath = outpath
+    new_filepath = os.path.join(texture_path, texture_name + '.jpg')
+    os.remove(texture_path)
+    os.rename(original_filepath, new_filepath)
+    os.remove(script_folder + '\\normalizer' + texture_name +'.bat')
+
 
 
 def PlugTexture(scene, path):
