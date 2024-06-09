@@ -49,7 +49,6 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
 
        #Backup folder
         Backup(generator_folder, input_path)
-
         subfolders = os.listdir(input_path)
      
         
@@ -67,18 +66,12 @@ class GENERATE_OT_generate_flags(bpy.types.Operator):
 
             #Get the textures list
             textures_list = GetTextures(subfolder_path)
-            print("Hey ! At this step, textures-list length is " + str(len(textures_list)))
-
 
             # # For each item in textures_list:
             for item in textures_list:
-                print ("Texture is " + str(item))
                 texture_path = item
-                print ("Texture path is " + str(texture_path))
                 texture_fullname = os.path.basename(texture_path)
                 texture_name = os.path.splitext(texture_fullname)[0]
-                print("Texture fullname is " + texture_fullname)
-                print("Texture name is " + texture_name)
 
                 # Normalize the image but not if it's in the logo folder
                 if "Logo" not in subfolder_name:
@@ -123,15 +116,10 @@ class VIEW3D_PT_generate_flags(bpy.types.Panel):
         col = layout.column()
         col.operator("generate.generate_flags")
 
-        
-        
+       
 
 # FUNCTIONS
 def SetupRenderSettings(scene):
-    #   Create and place the camera
-    # bpy.ops.object.camera_add(align='VIEW')
-    # bpy.ops.view3d.camera_to_view()
-
     scene.view_settings.view_transform = "Standard"
     scene.render.resolution_x = 512
     scene.render.resolution_y = 512
@@ -173,7 +161,6 @@ def Normalize(generator_folder, texture_folder, texture_path, texture_name):
 
     #Here we define the four arguments we want to give the ffmpeg command. They will be written in a text file which will be saved as a "bat" file and launched by Python. We are asking Python to write the bat file for us.
     ffmpeg_command=[
-        # The command we need is ffmpeg -i input_image -vf scale=512:512 output_image
         ffmpeg_path,
         "-i " + texture_path,
         "-vf scale=" + str(resolution) + ":" + str(resolution),
@@ -259,12 +246,10 @@ def RenameThumbnail(output_path, name):
 def ExportGLB(list, path, name):
     for item in list:
         item.select_set(True)
-    
+
     
     extension = ".glb"
     output_path = os.path.join(path, name + extension)
-
-
 
     bpy.ops.export_scene.gltf(filepath=output_path, export_format="GLB", export_selected=True)
 
